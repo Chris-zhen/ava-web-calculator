@@ -2,58 +2,532 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Java Web Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NeonCalc | iPhone Style Calculator</title>
+
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; margin-top: 50px; background-color: #f4f4f9; }
-        .calc-box { padding: 20px; border-radius: 8px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        input, select, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
-        button { background-color: #007bff; color: white; border: none; font-size: 16px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        #result { margin-top: 15px; font-weight: bold; font-size: 18px; color: #333; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #05050b;
+            --purple: #a855f7;
+            --blue: #38bdf8;
+            --orange: #ff9f0a;
+            --text: #ffffff;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 16px;
+            font-family: -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 15%,
+                    rgba(168, 85, 247, 0.16), transparent 35%),
+                radial-gradient(circle at 85% 85%,
+                    rgba(56, 189, 248, 0.12), transparent 35%),
+                var(--bg);
+        }
+
+        .calculator {
+            width: 100%;
+            max-width: 365px;
+            padding: 24px 20px 22px;
+            border: 1px solid rgba(168, 85, 247, 0.45);
+            border-radius: 35px;
+            background: rgba(14, 14, 25, 0.94);
+            box-shadow:
+                0 0 18px rgba(168, 85, 247, 0.2),
+                0 0 55px rgba(56, 189, 248, 0.08),
+                inset 0 0 20px rgba(168, 85, 247, 0.04);
+            backdrop-filter: blur(16px);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand h1 {
+            font-size: 21px;
+            letter-spacing: 3px;
+            font-weight: 800;
+            background: linear-gradient(
+                90deg, #c084fc, #38bdf8
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .brand p {
+            color: #77768d;
+            font-size: 10px;
+            letter-spacing: 3px;
+            margin-top: 7px;
+        }
+
+        .display {
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 12px 4px 24px;
+            overflow: hidden;
+        }
+
+        .history {
+            width: 100%;
+            min-height: 22px;
+            text-align: right;
+            color: #85839e;
+            font-size: 15px;
+            overflow-wrap: anywhere;
+        }
+
+        .screen {
+            width: 100%;
+            text-align: right;
+            font-size: clamp(38px, 11vw, 56px);
+            font-weight: 300;
+            letter-spacing: -2px;
+            color: #fff;
+            overflow-wrap: anywhere;
+            text-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+        }
+
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .key {
+            aspect-ratio: 1 / 1;
+            border: 1px solid rgba(255, 255, 255, 0.035);
+            border-radius: 50%;
+            background: #242431;
+            color: white;
+            font-size: 25px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition:
+                transform 0.12s ease,
+                box-shadow 0.18s ease,
+                background 0.18s ease;
+        }
+
+        .key:hover {
+            background: #333344;
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.15);
+        }
+
+        .key:active {
+            transform: scale(0.91);
+        }
+
+        .function {
+            background: #a5a5b5;
+            color: #11111a;
+            font-size: 21px;
+        }
+
+        .function:hover {
+            background: #c3c3d0;
+        }
+
+        .operator {
+            background: #28203a;
+            color: #d8b4fe;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .operator:hover,
+        .operator.active {
+            color: white;
+            background: #8b35d5;
+            box-shadow: 0 0 17px rgba(168, 85, 247, 0.55);
+        }
+
+        .equals {
+            color: #fff;
+            background: linear-gradient(145deg, #a855f7, #6366f1);
+            border: 1px solid rgba(216, 180, 254, 0.6);
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.35);
+        }
+
+        .equals:hover {
+            background: linear-gradient(145deg, #c084fc, #818cf8);
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+        }
+
+        .zero {
+            grid-column: span 2;
+            aspect-ratio: auto;
+            border-radius: 999px;
+            text-align: left;
+            padding-left: 29px;
+        }
+
+        .footer {
+            margin-top: 23px;
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #68677d;
+        }
+
+        .footer span {
+            color: #b56aff;
+        }
+
+        @media (max-width: 360px) {
+            .calculator {
+                padding: 20px 15px;
+            }
+
+            .keys {
+                gap: 9px;
+            }
+
+            .key {
+                font-size: 22px;
+            }
+
+            .function {
+                font-size: 18px;
+            }
+
+            .display {
+                min-height: 115px;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div class="calc-box">
-        <h2>Java Calculator</h2>
-        <input type="number" id="num1" placeholder="First Number">
-        <select id="operator">
-            <option value="add">+</option>
-            <option value="subtract">-</option>
-            <option value="multiply">*</option>
-            <option value="divide">/</option>
-        </select>
-        <input type="number" id="num2" placeholder="Second Number">
-        <button onclick="performCalculation()">Calculate</button>
-        <div id="result"></div>
-    </div>
+    <main class="calculator">
+        <header class="brand">
+            <h1>NEONCALC</h1>
+            <p>NEON EDITION</p>
+        </header>
+
+        <section class="display" aria-label="Calculator display">
+            <div class="history" id="history" aria-live="polite"></div>
+            <div class="screen" id="screen" aria-live="polite">0</div>
+        </section>
+
+        <section class="keys" aria-label="Calculator buttons">
+            <button class="key function" data-action="clear">AC</button>
+            <button class="key function" data-action="sign">+/-</button>
+            <button class="key function" data-action="percent">%</button>
+            <button class="key operator" data-operator="/" aria-label="Divide">÷</button>
+
+            <button class="key" data-number="7">7</button>
+            <button class="key" data-number="8">8</button>
+            <button class="key" data-number="9">9</button>
+            <button class="key operator" data-operator="*" aria-label="Multiply">×</button>
+
+            <button class="key" data-number="4">4</button>
+            <button class="key" data-number="5">5</button>
+            <button class="key" data-number="6">6</button>
+            <button class="key operator" data-operator="-" aria-label="Subtract">−</button>
+
+            <button class="key" data-number="1">1</button>
+            <button class="key" data-number="2">2</button>
+            <button class="key" data-number="3">3</button>
+            <button class="key operator" data-operator="+" aria-label="Add">+</button>
+
+            <button class="key zero" data-number="0">0</button>
+            <button class="key" data-action="decimal">.</button>
+            <button class="key equals" data-action="equals">=</button>
+        </section>
+
+        <footer class="footer">
+            POWERED BY <span>NEON</span> ⚡
+        </footer>
+    </main>
 
     <script>
-        async function performCalculation() {
-            const num1 = document.getElementById('num1').value;
-            const num2 = document.getElementById('num2').value;
-            const operator = document.getElementById('operator').value;
-            const resultDiv = document.getElementById('result');
+        const screen = document.getElementById("screen");
+        const history = document.getElementById("history");
+        const keys = document.querySelector(".keys");
 
-            if(!num1 || !num2) {
-                resultDiv.innerText = "Please enter both numbers.";
+        let current = "0";
+        let stored = null;
+        let operator = null;
+        let waitingForNumber = false;
+        let justCalculated = false;
+
+        function formatNumber(value) {
+            if (!Number.isFinite(value)) {
+                return "Error";
+            }
+
+            if (Object.is(value, -0)) {
+                value = 0;
+            }
+
+            let result;
+
+            if (Math.abs(value) >= 1e12 ||
+                (value !== 0 && Math.abs(value) < 1e-8)) {
+                result = value.toExponential(6);
+            } else {
+                result = Number(value.toPrecision(12)).toString();
+            }
+
+            return result;
+        }
+
+        function updateScreen() {
+            screen.textContent = current;
+
+            document.querySelectorAll("[data-operator]").forEach(button => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.operator === operator && waitingForNumber
+                );
+            });
+        }
+
+        function clearAll() {
+            current = "0";
+            stored = null;
+            operator = null;
+            waitingForNumber = false;
+            justCalculated = false;
+            history.textContent = "";
+            updateScreen();
+        }
+
+        function inputNumber(number) {
+            if (current === "Error" || justCalculated) {
+                current = number;
+                justCalculated = false;
+                history.textContent = "";
+            } else if (waitingForNumber) {
+                current = number;
+                waitingForNumber = false;
+            } else if (current === "0") {
+                current = number;
+            } else if (current === "-0") {
+                current = "-" + number;
+            } else if (current.replace("-", "").replace(".", "").length < 14) {
+                current += number;
+            }
+
+            updateScreen();
+        }
+
+        function inputDecimal() {
+            if (current === "Error" || justCalculated) {
+                current = "0.";
+                justCalculated = false;
+                history.textContent = "";
+            } else if (waitingForNumber) {
+                current = "0.";
+                waitingForNumber = false;
+            } else if (!current.includes(".")) {
+                current += ".";
+            }
+
+            updateScreen();
+        }
+
+        function chooseOperator(nextOperator) {
+            if (current === "Error") {
+                clearAll();
                 return;
             }
 
-            try {
-                const response = await fetch(`/calculate?num1=${num1}&num2=${num2}&operator=${operator}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    resultDiv.style.color = "red";
-                    resultDiv.innerText = data.error;
-                } else {
-                    resultDiv.style.color = "#333";
-                    resultDiv.innerText = `Result: ${data.result}`;
+            const inputValue = Number(current);
+
+            if (operator && !waitingForNumber) {
+                const result = calculate(stored, inputValue, operator);
+
+                if (result === null) {
+                    showError();
+                    return;
                 }
-            } catch (err) {
-                resultDiv.innerText = "Error contacting server.";
+
+                current = formatNumber(result);
+                stored = result;
+            } else {
+                stored = inputValue;
             }
+
+            operator = nextOperator;
+            waitingForNumber = true;
+            justCalculated = false;
+
+            history.textContent =
+                formatNumber(stored) + " " + displayOperator(operator);
+
+            updateScreen();
         }
+
+        function calculate(a, b, op) {
+            let result;
+
+            switch (op) {
+                case "+": result = a + b; break;
+                case "-": result = a - b; break;
+                case "*": result = a * b; break;
+                case "/":
+                    if (b === 0) return null;
+                    result = a / b;
+                    break;
+                default:
+                    return b;
+            }
+
+            return Number.isFinite(result) ? result : null;
+        }
+
+        function displayOperator(op) {
+            return {
+                "+": "+",
+                "-": "−",
+                "*": "×",
+                "/": "÷"
+            }[op] || op;
+        }
+
+        function equals() {
+            if (!operator || stored === null || current === "Error") {
+                return;
+            }
+
+            const first = stored;
+            const second = waitingForNumber ? stored : Number(current);
+            const op = operator;
+            const result = calculate(first, second, op);
+
+            if (result === null) {
+                showError();
+                return;
+            }
+
+            history.textContent =
+                formatNumber(first) + " " +
+                displayOperator(op) + " " +
+                formatNumber(second) + " =";
+
+            current = formatNumber(result);
+            stored = null;
+            operator = null;
+            waitingForNumber = false;
+            justCalculated = true;
+
+            updateScreen();
+        }
+
+        function showError() {
+            current = "Error";
+            stored = null;
+            operator = null;
+            waitingForNumber = true;
+            justCalculated = false;
+            history.textContent = "Cannot divide by zero";
+            updateScreen();
+        }
+
+        function toggleSign() {
+            if (current === "Error") return;
+
+            if (Number(current) !== 0) {
+                current = current.startsWith("-")
+                    ? current.slice(1)
+                    : "-" + current;
+            }
+
+            justCalculated = false;
+            updateScreen();
+        }
+
+        function percent() {
+            if (current === "Error") return;
+
+            current = formatNumber(Number(current) / 100);
+            justCalculated = false;
+            updateScreen();
+        }
+
+        function deleteLast() {
+            if (current === "Error" || justCalculated) {
+                clearAll();
+                return;
+            }
+
+            if (waitingForNumber) return;
+
+            current = current.length > 1
+                ? current.slice(0, -1)
+                : "0";
+
+            if (current === "-") current = "0";
+
+            updateScreen();
+        }
+
+        keys.addEventListener("click", event => {
+            const button = event.target.closest("button");
+            if (!button) return;
+
+            if (button.dataset.number !== undefined) {
+                inputNumber(button.dataset.number);
+                return;
+            }
+
+            if (button.dataset.operator) {
+                chooseOperator(button.dataset.operator);
+                return;
+            }
+
+            switch (button.dataset.action) {
+                case "clear": clearAll(); break;
+                case "sign": toggleSign(); break;
+                case "percent": percent(); break;
+                case "decimal": inputDecimal(); break;
+                case "equals": equals(); break;
+            }
+        });
+
+        document.addEventListener("keydown", event => {
+            const key = event.key;
+
+            if (/^[0-9]$/.test(key)) {
+                inputNumber(key);
+            } else if (key === ".") {
+                inputDecimal();
+            } else if (["+", "-", "*", "/"].includes(key)) {
+                chooseOperator(key);
+            } else if (key === "Enter" || key === "=") {
+                event.preventDefault();
+                equals();
+            } else if (key === "Escape") {
+                clearAll();
+            } else if (key === "Backspace") {
+                deleteLast();
+            } else if (key === "%") {
+                percent();
+            }
+        });
+
+        updateScreen();
     </script>
 </body>
 </html>
